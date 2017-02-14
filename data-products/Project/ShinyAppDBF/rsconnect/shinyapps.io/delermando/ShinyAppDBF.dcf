@@ -1,0 +1,9 @@
+name: ShinyAppDBF
+account: delermando
+server: shinyapps.io
+appId: 118270
+bundleId: 524006
+url: https://delermando.shinyapps.io/ShinyAppDBF/
+when: 1470333118.20368
+asMultiple: FALSE
+asStatic: FALSE

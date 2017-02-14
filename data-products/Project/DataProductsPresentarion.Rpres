@@ -1,0 +1,41 @@
+Data Products Presentarion - Shiny Application and Reproducible Pitch
+========================================================
+author: Delermando Branquinho Filho
+date: august, 04 2016
+autosize: true
+
+
+========================================================
+
+Course Project
+
+* This is the final presentation for the Course Project of the “Developing data products” course
+* This course is part of the “Data Science specialization”
+* The project consists in two activities:
+* Create a Shiny application
+* Create a presentation in Slidify or Rstudio Presenter to pitch for the application.
+
+========================================================
+
+As an initial test, dependence of mpg on wt is analysed. box-scat A: Boxplot, B: Scatterplot of mpg against wt.
+
+For the purpose of this analysis we use mtcars dataset which is a dataset extracted from the 1974 Motor Trend US magazine, and comprises fuel autonomy and 10 more aspects of automobile design and performance for 32 automobiles (1973-74 models). The table below shows a brief description of the variables in the dataset:
+
+```{r}
+data("mtcars")
+head(mtcars)
+```
+
+========================================================
+According to the boxplot, automatic cars have lower MPG (and possibly lower variance in the data). Importantly, the relationships appear linear and no outliers which could affect correlation values are identified. The only aspect which is slightly problematic is the limited dataset size (n=32). It is noted that apparently most cars with automatic transmission also are heavier which possibly confounds the observation, this would be subject to further research.
+
+```{r, echo=FALSE}
+boxplot(mtcars$mpg ~ mtcars$am, xlab="Transmission (0 = Automatic, 1 = Manual)", ylab="MPG",
+                                main="Boxplot of MPG vs. Transmission")
+```
+
+=======================================================
+The application can be found in 
+
+https://delermando.shinyapps.io/ShinyAppDBF/
+
