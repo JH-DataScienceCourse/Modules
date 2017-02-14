@@ -1,0 +1,4 @@
+removeresultado<-function(x) {
+  
+  x
+}
