@@ -1,0 +1,260 @@
+---
+title: "Practical Machine Learning"
+author: "Delermando Branquinho Filho"
+date: "29 de julho de 2016"
+output: html_document
+subtitle: Peer Assessments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+
+This document presents the results of the Practical Machine Learning Peer Assessments in a report using a single R markdown document that can be processed by knitr and be transformed into an HTML file. This analysis was done to predict the manner in which the subjects performed weight lifting exercises. The data is collected from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. The outcome variable has five classes and the total number of predictors are 159.
+
+### Preparation
+
+The warnings messages was keept for research reproducibility purpose
+
+```{r}
+library(knitr)
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(corrplot)
+library(rattle)
+set.seed(12345)
+```
+
+### Loading Data
+
+The training data for this project are downloaded from [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+
+The test data are downloaded from [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+The data for this project come from this [source](http://groupware.les.inf.puc-rio.br/har)
+
+
+```{r}
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+inTrain  <- createDataPartition(training$classe, p=0.7, list=FALSE)
+TrainSet <- training[inTrain, ]
+TestSet  <- training[-inTrain, ]
+```
+
+The next step is loading the dataset from the URL provided above. The training dataset is then partinioned in 2 to create a Training set (70% of the data) for the modeling process and a Test set (with the remaining 30%) for the validations. The testing dataset is not changed and will only be used for the quiz results generation
+
+### Preprocessing
+
+
+```{r}
+NZV <- nearZeroVar(TrainSet)
+TrainSet <- TrainSet[, -NZV]
+TestSet  <- TestSet[, -NZV]
+dim(TrainSet); dim(TestSet)
+```
+
+### Data Cleaning
+
+Remove variables with missing values
+```{r}
+AllNA    <- sapply(TrainSet, function(x) mean(is.na(x))) > 0.95
+TrainSet <- TrainSet[, AllNA==FALSE]
+TestSet  <- TestSet[, AllNA==FALSE]
+dim(TrainSet)
+
+```
+
+### Remove unnecessary columns
+```{r}
+TrainSet <- TrainSet[, -(1:5)]
+TestSet  <- TestSet[, -(1:5)]
+dim(TrainSet); dim(TestSet)
+
+```
+
+
+Verifying Correlation Analysis
+
+```{r}
+corMatrix <- cor(TrainSet[, -54])
+corrplot(corMatrix, order = "FPC", method = "color", type = "lower", 
+         tl.cex = 0.8, tl.col = rgb(0, 0, 0))
+```
+
+## Modeling - Prediction Model Building
+
+Since a random forest model is chosen and the data set must first be checked on possibility of columns without data.
+
+The decision is made whereby all the columns that having less than 60% of data filled are removed.
+
+In the new training set and validation set we just created, there are 52 predictors and 1 response. Check the correlations between the predictors and the outcome variable in the new training set. There doesn't seem to be any predictors strongly correlated with the outcome variable, so linear regression model may not be a good option. Random forest model may be more robust for this data.
+
+### Random Forest Model
+
+Just try to fit a random forest model and check the model performance on the validation set.
+        
+```{r}
+set.seed(12345)
+controlRF <- trainControl(method="cv", number=3, verboseIter=FALSE)
+modFitRandForest <- train(classe ~ ., data=TrainSet, method="rf",
+                          trControl=controlRF)
+modFitRandForest$finalModel
+```
+
+Predict on test dataset
+
+```{r}
+predictRandForest <- predict(modFitRandForest, newdata=TestSet)
+confMatRandForest <- confusionMatrix(predictRandForest, TestSet$classe)
+confMatRandForest
+```
+
+
+Ploting Matrix Results to Random Forest Model
+
+```{r}
+plot(confMatRandForest$table, col = "beige",
+     main = paste("Random Forest - Accuracy =",
+                  round(confMatRandForest$overall['Accuracy'], 4)))
+```
+
+
+### Decision Trees Method
+
+```{r}
+set.seed(12345)
+modFitDecTree <- rpart(classe ~ ., data=TrainSet, method="class")
+suppressWarnings(fancyRpartPlot(modFitDecTree))
+
+```
+
+Again, Predict on test dataset
+
+```{r}
+predictDecTree <- predict(modFitDecTree, newdata=TestSet, type="class")
+confMatDecTree <- confusionMatrix(predictDecTree, TestSet$classe)
+confMatDecTree
+
+```
+
+As before, Ploting Matrix Results
+
+```{r}
+plot(confMatDecTree$table, col = "bisque", 
+     main = paste("Decision Tree - Accuracy =",
+                  round(confMatDecTree$overall['Accuracy'], 4)))
+
+```
+
+
+### Trying to Generalized Boosted Model
+
+```{r}
+set.seed(12345)
+controlGBM <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+modFitGBM  <- train(classe ~ ., data=TrainSet, method = "gbm",
+                    trControl = controlGBM, verbose = FALSE)
+modFitGBM$finalModel
+
+```
+
+
+Need to Predict on test dataset for GBM
+
+```{r}
+predictGBM <- predict(modFitGBM, newdata=TestSet)
+confMatGBM <- confusionMatrix(predictGBM, TestSet$classe)
+confMatGBM
+
+```
+
+plot matrix results
+
+```{r}
+plot(confMatGBM$table, col = "aquamarine3", 
+     main = paste("GBM - Accuracy =", round(confMatGBM$overall['Accuracy'], 4)))
+
+```
+
+The accuracy of the 3 regression modeling methods above are:
+        
+Random Forest : 0.9963
+Decision Tree : 0.7368
+GBM           : 0.9839
+
+## Cross Validation Model
+
+We try to solve a classification problem, then we must trie to use the classification method, at this time we sill use caret package: classification tree algorithm and random force. I also carried out 3-fold validation using the trainControl function.
+
+Preparing Data
+
+```{r}
+training<-read.csv("pml-training.csv",na.strings=c("NA","#DIV/0!"))
+testing<-read.csv("pml-testing.csv",na.strings=c("NA","#DIV/0!"))
+table(training$classe)
+NA_Count = sapply(1:dim(training)[2],function(x)sum(is.na(training[,x])))
+NA_list = which(NA_Count>0)
+colnames(training[,c(1:7)])
+training = training[,-NA_list]
+training = training[,-c(1:7)]
+training$classe = factor(training$classe)
+testing = testing[,-NA_list]
+testing = testing[,-c(1:7)]
+```
+
+The testing dataset has been processed in the same way
+
+```{r}
+set.seed(1234)
+cv3 = trainControl(method="cv",number=3,allowParallel=TRUE,verboseIter=TRUE)
+modrf = train(classe~., data=training, method="rf",trControl=cv3)
+modtree = train(classe~.,data=training,method="rpart",trControl=cv3)
+```
+
+Now, we will verify the performance of these two model on the testing dataset
+
+```{r}
+prf=predict(modrf,training)
+ptree=predict(modtree,training)
+table(prf,training$classe); table(ptree,training$classe)
+```
+
+For the testing dataset.
+
+```{r}
+prf=predict(modrf,testing)
+ptree=predict(modtree,testing)
+table(prf,ptree)
+```
+
+From the results, it appears that the random forest model has the best accuracy for testing datas
+
+
+## Conclusion
+
+I think that random forest model to the testing dataset for submission result.
+
+
+```{r}
+answers=predict(modrf,testing)
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+answers
+```
+
+pml_write_files(answers)
+
+Other conclusion is that 52 variables to build the random forest model with 3-fold cross validation. The out-of-sample error is approximately 0.9%.
+
+The predicted classes for the 20 tests are: B A B A A E D B A A B C B A E E A B B B.
+

@@ -1,0 +1,82 @@
+---
+title: "Practical Machine Learning"
+subtitle: "Quiz1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+Which of the following are components in building a machine learning algorithm?
+
+Artificial intelligence
+
+Statistical inference
+
+Training and test sets
+
+Deciding on an algorithm <-
+
+Machine learning
+
+## Question 2
+
+Suppose we build a prediction algorithm on a data set and it is 100% accurate on that data set. Why might the algorithm not work well if we collect a new data set?
+
+Our algorithm may be overfitting the training data, predicting both the signal and the noise. <-
+
+We have used neural networks which has notoriously bad performance.
+
+We may be using bad variables that don't explain the outcome.
+
+We have too few predictors to get good out of sample accuracy.
+
+## Question 3
+
+What are typical sizes for the training and test sets?
+
+100% training set, 0% test set.
+
+90% training set, 10% test set
+
+20% test set, 80% training set.
+
+60% in the training set, 40% in the testing set. <--
+
+## Question 4
+
+What are some common error rates for predicting binary variables (i.e. variables with two possible values like yes/no, disease/normal, clicked/didn't click)? Check the correct answer(s).
+
+Root mean squared error
+
+R^2
+
+Specificity <-
+
+Correlation
+
+Median absolute deviation
+
+## Question 5
+
+Suppose that we have created a machine learning algorithm that predicts whether a link will be clicked with 99% sensitivity and 99% specificity. The rate the link is clicked is 1/1000 of visits to a website. If we predict the link will be clicked on a specific visit, what is the probability it will actually be clicked?
+
+99%
+
+9% <-
+
+89.9%
+
+0.009%
+```{r}
+# 100,000 visits => 100 clicks
+# 99% = sensitivity = TP/(TP+FN) = 
+99/(99+1)
+# 99% specificity =TN/(TN+FP) = 
+98901/(98901+999)
+# P(actually clicked|clicked) = TP/(TP+FP) = 
+99/(99+999)
+```

@@ -1,0 +1,204 @@
+---
+title: "Practical Machine Learning"
+subtitle: "Quiz 2"
+date: "26 de julho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+At the firt step you must know if the packages are instaled, if not, intall with this commands:
+
+install.packages("caret")
+install.packages("AppliedPredictiveModeling")
+
+### The question
+
+Which of the following commands will create non-overlapping training and test sets with about 50% of the observations assigned to each?
+
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+data(AlzheimerDisease)
+library(Hmisc)
+
+adData = data.frame(diagnosis,predictors)
+train = createDataPartition(diagnosis, p = 0.50,list=FALSE)
+test = createDataPartition(diagnosis, p = 0.50,list=FALSE)
+
+adData = data.frame(diagnosis,predictors)
+testIndex = createDataPartition(diagnosis, p = 0.50,list=FALSE)
+training = adData[-testIndex,]
+testing = adData[testIndex,]
+```
+
+## Question 2
+
+Load the cement data using the commands:
+
+```{r}
+library(AppliedPredictiveModeling)
+data(concrete)
+library(caret)
+set.seed(1000)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+```
+
+Make a plot of the outcome (CompressiveStrength) versus the index of the samples. Color by each of the variables in the data set (you may find the cut2() function in the Hmisc package useful for turning continuous covariates into factors). What do you notice in these plots?
+
+Before we need to get the names of the columns to subset
+
+```{r}
+names <- colnames(concrete)
+names <- names[-length(names)]
+```
+
+Now let's make a quick feature plot to see if there is any relation between the outcome 
+CompressiveStrength and the rest of the parameters in the data:
+
+```{r}
+featurePlot(x = training[, names], y = training$CompressiveStrength, plot = "pairs")
+```
+
+We can observe on this plot that there is no relation between the outcome and any of the other variables in data set
+
+Now we will make a plot of the outcome as a function of the index
+
+```{r}
+index <- seq_along(1:nrow(training))
+ggplot(data = training, aes(x = index, y = CompressiveStrength)) + geom_point() + theme_bw()
+```
+
+Now we see this figure that there is a step-like pattern in the data that could be explained by one or more variable in the data. From this plot we should probably cut the outcome in 4 categories.
+
+```{r}
+cutCS <- cut2(training$CompressiveStrength, g = 4)
+summary(cutCS)
+```
+
+Then, we make a plot of the categorized outcome outcome
+
+```{r}
+ggplot(data = training, aes(y = index, x = cutCS)) + geom_boxplot() + geom_jitter(col = "blue") + theme_bw()
+```
+
+
+Now the step is better seen in the above plot. As we can see this plot the step-like pattern is more clear now.
+
+Now we'll make a plot of the categorized income as function of the rest of the variables
+
+```{r}
+featurePlot(x = training[, names], y = cutCS, plot = "box")
+```
+
+Once more, none of the variables in the data can explaing the step-like behaviour in the outcome.
+
+The answer is: There is a step-like pattern in the plot of outcome versus index in the training set that isn't explained by any of the predictor variables so there may be a variable missing.
+
+## Question 3
+
+Load the cement data using the commands:
+
+```{r}
+library(AppliedPredictiveModeling)
+data(concrete)
+library(caret)
+set.seed(1000)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+``` 
+
+Make a histogram and confirm the SuperPlasticizer variable is skewed. Normally you might use the log transform to try to make the data more symmetric. Why would that be a poor choice for this variable?
+
+```{r}
+ggplot(data = training, aes(x = Superplasticizer)) + geom_histogram() + theme_bw()
+```
+
+### Answer 
+
+There are values of zero so when you take the log() transform those values will be -Inf. 
+
+## Question 4
+
+Load the Alzheimer's disease data using the commands:
+
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+```
+
+Find all the predictor variables in the training set that begin with IL. Perform principal components on these variables with the preProcess() function from the caret package. Calculate the number of principal components needed to capture 90% of the variance. How many are there?
+
+```{r}
+library(ggplot2)
+library(caret)
+ncol(training)
+which(sapply(adData,class)=="factor")
+summary(training$diagnosis)
+training$diagnosis = as.numeric(training$diagnosis)
+p <- prcomp(training[,grep('^IL',names(training))])
+p$rotation[,1:7]
+qplot(1:length(p$sdev),p$sdev / sum(p$sdev))
+which(cumsum(p$sdev) / sum(p$sdev) <= .9)
+(cumsum(p$sdev) / sum(p$sdev))[8]
+
+preProc <- preProcess(training[,grep('^IL',names(training))],method="pca",thres=.9)
+
+# See the result here
+preProc
+```
+
+
+## Question 5
+
+Load the Alzheimer's disease data using the commands:
+
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+```
+
+Create a training data set consisting of only the predictors with variable names beginning with IL and the diagnosis. Build two predictive models, one using the predictors as they are and one using PCA with principal components explaining 80% of the variance in the predictors. Use method="glm" in the train function.
+
+What is the accuracy of each method in the test set? Which is more accurate?
+
+```{r}
+trainSmall <- data.frame(training[,grep('^IL',names(training))],training$diagnosis)
+testSmall <- data.frame(testing[,grep('^IL',names(testing))],testing$diagnosis)
+preProc <- preProcess(trainSmall[-13],method="pca",thres=.8)
+trainPC <- predict(preProc,trainSmall[-13])
+testPC <- predict(preProc,testSmall[-13])
+
+PCFit <- train(trainSmall$training.diagnosis~.,data=trainPC,method="glm")
+NotPCFit <- train(trainSmall$training.diagnosis~.,data=trainSmall,method="glm")
+
+PCTestPredict <- predict(PCFit,newdata=testPC)
+NotPCTestPredict <- predict(NotPCFit,newdata=testSmall)
+
+confusionMatrix(PCTestPredict,testSmall$testing.diagnosis)
+confusionMatrix(NotPCTestPredict,testSmall$testing.diagnosis)
+```
+
+The accuracies are 0.65 and 0.72 respectively.
+
+
+

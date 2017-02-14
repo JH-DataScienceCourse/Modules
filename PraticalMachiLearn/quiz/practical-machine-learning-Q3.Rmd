@@ -1,0 +1,60 @@
+---
+title: "Practical Machine Learning"
+subtitle: "Quiz 3"
+date: "27 de julho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+For this quiz we will be using several R packages. R package versions change over time, the right answers have been checked using the following versions of the packages.
+
+AppliedPredictiveModeling: v1.1.6
+
+caret: v6.0.47
+
+ElemStatLearn: v2012.04-0
+
+pgmm: v1.1
+
+rpart: v4.1.8
+
+If you aren't using these versions of the packages, your answers may not exactly match the right answer, but hopefully should be close.
+
+Load the cell segmentation data from the AppliedPredictiveModeling package using the commands:
+
+```{r}
+library(AppliedPredictiveModeling)
+data(segmentationOriginal)
+library(caret)
+```
+
+1. Subset the data to a training set and testing set based on the Case variable in the data set.
+
+2. Set the seed to 125 and fit a CART model with the rpart method using all predictor variables and default caret settings.
+
+3. In the final model what would be the final model prediction for cases with the following variable values:
+
+a. TotalIntench2 = 23,000; FiberWidthCh1 = 10; PerimStatusCh1=2
+
+b. TotalIntench2 = 50,000; FiberWidthCh1 = 10;VarIntenCh4 = 100
+
+c. TotalIntench2 = 57,000; FiberWidthCh1 = 8;VarIntenCh4 = 100
+
+d. FiberWidthCh1 = 8;VarIntenCh4 = 100; PerimStatusCh1=2
+
+```{r}
+inTrain <- createDataPartition(y = segmentationOriginal$Case, p = 0.6, 
+                               list = FALSE)
+training <- segmentationOriginal[inTrain, ]
+testing <- segmentationOriginal[-inTrain, ]
+set.seed(125)
+modFit <- train(Class ~ ., method = "rpart", data = training)
+modFit$finalModel
+suppressMessages(library(rattle))
+library(rpart.plot)
+fancyRpartPlot(modFit$finalModel)
+```
+
