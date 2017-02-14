@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/189288/7061afedaea34ab0bc57c7249ec087f9
+bundleId: https://api.rpubs.com/api/v1/document/189288/7061afedaea34ab0bc57c7249ec087f9
+url: http://rpubs.com/delermando/189288/edit
+when: 1465843672.54489

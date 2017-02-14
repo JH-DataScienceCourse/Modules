@@ -1,0 +1,109 @@
+---
+title: "Statistical Inference"
+subtitle: "Master Degree"
+author: "Delermando Branquinho Filho"
+date: "18 de junho de 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Statistical Inference Course Project
+
+The project consists of two parts:
+
+- A simulation exercise.
+
+- Basic inferential data analysis.
+
+You will create a report to answer the questions. Given the nature of the series, ideally you'll use knitr to create the reports and convert to a pdf. (I will post a very simple introduction to knitr). However, feel free to use whatever software that you would like to create your pdf.
+
+Each pdf report should be no more than 3 pages with 3 pages of supporting appendix material if needed (code, figures, etcetera).
+
+## My Project
+
+This dissertation introduces and empirically validates a new proposal in Electronic Catalogs, based on Visual One Page Catalog (VOPC) [LLW 2003][L&W 2004]. The Theory of Parallel Coordinates is the main theoretical basis for this study.  The proposed interface to Electronic Catalogs based on Parallel Coordinates presents, besides filtered products on a single page, multiple attributes in only two dimensions. Among the extensions of original VOPC, it should be highlighted the use of fading and distances between attributes proportional to their relative importance degrees. To evaluate the efficiency of this new electronic catalog, two interfaces have been implemented: traditional (reference for comparison, usually found at portals in the Internet) and Parallel Coordinates. The principal objective of this study is to contribute with the improving of Electronic Catalogs in order to ease product search and choice. Specifically, efficiency (measured by the temporal duration of the search and choice process) and effort (measured by the number of clicks of the mouse) are compared in these two experimental conditions. As result of the (descriptive and inferential) statistical analysis and data interpretation, the equivalence between traditional and Parallel Coordinates was obtained, even being the last one less familiar. Hypothetically, as the proposed system becomes more familiar, favorable significant differences could happen in future experiments.
+
+**Key words:** Electronic Catalogs, Parallel Coordinates, Internet.
+
+
+## Age Distribution Subject
+
+### Dataset
+
+you can load the Dataset, [click here](https://www.sugarsync.com/pf/D481743_06742699_7353715)
+
+
+```{r}
+yearsoldsubjects <- read.csv("yearsoldsubjects.txt",header = FALSE)
+head(yearsoldsubjects)
+tail(yearsoldsubjects)
+colnames(yearsoldsubjects)<-"yo"
+```
+
+### The Histogram
+
+
+```{r}
+h<-hist(yearsoldsubjects$yo,xlab = "Years Old", ylab =  "# Subjects",main = "Age Distribution Subjects",freq = TRUE,col = "GRAY",ylim = c(0,20), xlim = c(30,55),breaks = 8,right = FALSE)
+xfit<-seq(min(yearsoldsubjects$yo),max(yearsoldsubjects$yo),length=20) 
+yfit<-dnorm(xfit,mean=mean(yearsoldsubjects$yo),sd=sd(yearsoldsubjects$yo)) 
+yfit<-yfit*xfit*6
+lines(xfit, yfit, col="blue", lwd=2)
+```
+
+## Distribution of the experience 
+
+This graphicas show the Distribution of the experience in selecttions of accommodations  and its attributes on beaches.
+
+### Dataset
+
+you can load the Dataset, [click here](https://www.sugarsync.com/pf/D481743_06742699_7353887)
+```{r}
+yearsexpsubjects <- read.csv("yearsexpsubjects.txt",header = FALSE)
+head(yearsexpsubjects)
+tail(yearsexpsubjects)
+colnames(yearsexpsubjects)<-"yo"
+```
+
+### The Histogram
+
+Atention: run install.packages("htmlTable"), next lines I use this library.
+
+
+```{r}
+library(htmlTable)
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+h<-hist(yearsexpsubjects$yo,xlab = "# Travels", ylab =  "# Subjects",main = "Travels to Beach",freq = TRUE,col = "GRAY",ylim = c(0,20), xlim = c(2,9),breaks = 20,right = FALSE)
+xfit<-seq(min(yearsexpsubjects$yo),max(yearsexpsubjects$yo),length=20) 
+yfit<-dnorm(xfit,mean=mean(yearsexpsubjects$yo),sd=sd(yearsexpsubjects$yo)) 
+yfit<-yfit*xfit*10
+lines(xfit, yfit, col="blue", lwd=1)
+
+idade<-c(mean(yearsoldsubjects$yo), sd(yearsoldsubjects$yo), median(yearsoldsubjects$yo), getmode(yearsoldsubjects$yo), max(yearsoldsubjects$yo), min(yearsoldsubjects$yo))
+
+viagem<-c(mean(yearsexpsubjects$yo), sd(yearsexpsubjects$yo), median(yearsexpsubjects$yo), getmode(yearsexpsubjects$yo), max(yearsexpsubjects$yo), min(yearsexpsubjects$yo))
+idade<-round(idade, digits = 2)
+viagem<-round(viagem, digits = 2)
+
+myTable <- matrix(c(idade,viagem), ncol=6, byrow = TRUE)
+
+htmlTable(myTable, header = c("mean","sd","median","hiFrenq","max","min"),
+          rnames = c("Age", "Travel"),
+          caption="Descriptive analysis of the age, number of trips of the subjects",
+          tfoot="Table 4.1 from Master Degree Disertation")
+```
+
+
+The distribution of the buying experience or product attributes of selection accommodation in Brazilian beaches can be seen in Figure 4-3 and Table 4-1 with a descriptive analysis of the collected demographic data (See Appendix III for more references on data demographic of the participants).
+
+
+---
+
+[The Scientist BR](http://www.thescientist.com.br)
